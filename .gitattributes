@@ -1,0 +1,7 @@
+# Store text files with LF line endings in the repo and check them out as LF on
+# every OS, so Windows and Linux (CI, servers) see identical files.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary

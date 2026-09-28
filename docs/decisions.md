@@ -160,3 +160,43 @@ Full explanation will be written in `seat-locking.md` when implemented.
 
 ## Date
 2026-09-28
+
+---
+
+# ADR-006: Backend tooling — ESM, tsx, Zod-validated env, Express 5
+
+## Decision
+- The backend uses **ES modules** (`"type": "module"`, TypeScript `module: NodeNext`).
+- **tsx** runs TypeScript directly in development; **tsc** compiles to `dist/` for
+  production.
+- Environment variables are **validated with Zod** at startup (`config/env.ts`).
+- **Express 5**, TypeScript in **strict** mode.
+
+## Alternatives
+- **CommonJS** (`require`) — the older Node module system.
+- **ts-node** or **nodemon + tsc** for development.
+- Reading `process.env` directly everywhere, with no validation.
+- **Express 4**.
+
+## Why
+- ESM is the JavaScript standard module system and the direction Node is going.
+- tsx is fast (it uses esbuild) and needs no configuration. It doesn't type-check,
+  which is why `npm run typecheck` exists.
+- Validating env at startup means a missing or invalid variable crashes the app
+  immediately with a clear message, instead of failing later on a real request.
+  It also gives typed config (`env.PORT` is a `number`, not `string | undefined`).
+- Express 5 passes errors thrown in async route handlers to the error middleware
+  automatically. Express 4 needed a wrapper to do this.
+
+## Trade-offs
+- ➖ With `NodeNext`, relative imports must end in `.js` (`import { env } from
+  './config/env.js'`) even though the source file is `.ts`. TypeScript doesn't
+  rewrite import paths, and Node's ESM loader needs the real file name of the
+  compiled output.
+- ➖ tsx skips type-checking, so type errors only show up in the editor,
+  `typecheck`, or `build`.
+- ➕ Zod is also going to be our request-validation library, so we learn one tool
+  for both jobs.
+
+## Date
+2026-09-28

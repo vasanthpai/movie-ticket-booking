@@ -4,7 +4,7 @@ A full-stack movie ticket booking platform (in the spirit of BookMyShow), built 
 portfolio project with a focus on clean architecture, concurrency-safe seat booking,
 secure payments and thorough documentation.
 
-> 🚧 **Status:** Phase 0 — architecture and planning. See [docs/](docs/).
+> 🚧 **Status:** Phase 1 — project setup (backend skeleton done). See [docs/](docs/).
 
 ## Tech stack
 
@@ -33,7 +33,8 @@ docs/       Architecture, decisions, setup and learning notes
 - [Architecture decisions](docs/decisions.md)
 - [Setup](docs/setup.md)
 - [Learning notes](docs/learning-notes.md)
+- [Troubleshooting](docs/troubleshooting.md)
 
 Other docs (`api.md`, `database.md`, `authentication.md`, `seat-locking.md`,
-`payments.md`, `booking-flow.md`, `troubleshooting.md`) are added when the
+`payments.md`, `booking-flow.md`) are added when the
 corresponding feature is built, so they always describe real code.

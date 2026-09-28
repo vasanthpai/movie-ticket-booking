@@ -69,6 +69,9 @@ backend/src/
 └── server.ts      connects to DB, then app.listen()
 ```
 
+✅ **Implemented (Phase 1a):** `config/env.ts` (Zod-validated env), `app.ts`
+(`createApp()`), `server.ts`. Tooling: TypeScript strict + ESM, ESLint, Prettier.
+
 ### Request flow inside the backend
 
 ```
