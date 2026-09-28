@@ -200,3 +200,40 @@ Full explanation will be written in `seat-locking.md` when implemented.
 
 ## Date
 2026-09-28
+
+---
+
+# ADR-007: Next.js App Router + Tailwind CSS + shadcn/ui for the frontend
+
+## Decision
+- **Next.js 16 with the App Router**, TypeScript, scaffolded with `create-next-app`.
+- **Tailwind CSS v4** for styling.
+- **shadcn/ui** for UI components (built on Base UI primitives), with components
+  copied into `components/ui/`.
+
+## Alternatives
+- **Vite + React** — a single-page app with client-side rendering only.
+- **Next.js Pages Router** — the older routing system.
+- **A component library installed as a package** (MUI, Chakra UI, Mantine).
+- **Plain CSS / CSS Modules.**
+
+## Why
+- Server rendering matters for public pages: movie listings and details are indexable
+  by search engines and show content before JavaScript loads.
+- The App Router is the current Next.js model: nested layouts, Server Components,
+  and built-in loading/error states per route.
+- Tailwind keeps styles next to markup and uses a consistent design scale (spacing,
+  colours) instead of one-off values.
+- shadcn/ui gives accessible, well-built components as **source code in our repo**,
+  not a dependency. We can read and change every line, and nothing breaks when a
+  library releases a new major version.
+
+## Trade-offs
+- ➕ SEO-friendly, fast first load, good developer experience, easy deploy to Vercel.
+- ➖ The App Router's server vs client component split is a real learning curve.
+- ➖ Next.js changes quickly between major versions (e.g. v16 removed `next lint`).
+- ➖ Tailwind class lists get long; the Prettier plugin at least keeps them ordered.
+- ➖ shadcn components are ours to maintain; upstream fixes don't arrive automatically.
+
+## Date
+2026-09-28

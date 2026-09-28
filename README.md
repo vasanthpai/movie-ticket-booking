@@ -4,7 +4,7 @@ A full-stack movie ticket booking platform (in the spirit of BookMyShow), built 
 portfolio project with a focus on clean architecture, concurrency-safe seat booking,
 secure payments and thorough documentation.
 
-> 🚧 **Status:** Phase 1 — project setup (backend skeleton done). See [docs/](docs/).
+> 🚧 **Status:** Phase 1 — project setup (backend and frontend skeletons done). See [docs/](docs/).
 
 ## Tech stack
 

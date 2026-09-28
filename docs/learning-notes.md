@@ -123,3 +123,69 @@ lesson: when you upgrade a major version of a library, read its migration guide.
 
 - ES modules vs CommonJS in Node
 - How `z.coerce` works and when coercion is dangerous
+
+---
+
+# Feature: Frontend project setup (Phase 1b)
+
+## What I learned
+
+- What the App Router's `app/` folder means (folders = URLs)
+- Layouts vs pages
+- How `NEXT_PUBLIC_` environment variables work, and why they aren't secret
+- What shadcn/ui actually is (copied code, not a library)
+- Why you still review generated code
+
+## Important concepts
+
+**File-based routing.** In the App Router, folders are URL segments and `page.tsx`
+makes a segment visitable: `app/movies/[id]/page.tsx` → `/movies/123`.
+`layout.tsx` wraps its pages and every page below it, and persists between
+navigations. The root layout holds `<html>` and `<body>`.
+
+**Server Components by default.** Components in `app/` run on the **server** unless
+the file starts with `'use client'`. Server Components send HTML, not JavaScript, so
+pages load faster. You only need `'use client'` for interactivity: `useState`,
+`onClick`, browser APIs. Seat selection (Phase 10) will be a client component.
+
+**`NEXT_PUBLIC_` variables.** At build time, Next.js replaces
+`process.env.NEXT_PUBLIC_API_URL` with the literal string. It only does this for
+exact, literal references. `process.env[name]` would be `undefined` in the browser.
+Anything `NEXT_PUBLIC_` can be read by anyone who views the page source, so it's
+fine for an API URL and never OK for a secret key.
+
+**shadcn/ui.** Not an npm dependency you import from: `npx shadcn add button`
+**copies** `button.tsx` into `components/ui/`. You own and can edit it. It's built on
+Base UI, which handles accessibility (keyboard, focus, ARIA) so we don't have to.
+
+**`cn()` helper.** Merges Tailwind classes and resolves conflicts:
+`cn('px-2', 'px-4')` → `'px-4'`. Components use it so a caller can override
+default styles.
+
+**Generated code still needs review.** Checking the generators' output found two
+real bugs: a self-referencing CSS variable that silently disabled the font, and a
+`.gitignore` that would have hidden `.env.example`. Neither threw an error. They
+were found by reading the files and testing with `git add -n`.
+
+## Common mistakes
+
+- Putting a secret in a `NEXT_PUBLIC_` variable.
+- Adding `'use client'` to everything, which throws away the benefits of Server
+  Components.
+- Changing `.env.local` and not restarting the dev server.
+- Treating shadcn components as untouchable. They're your code; edit them.
+- Assuming `next build` catches lint errors (it doesn't since Next.js 16; run
+  `npm run lint`).
+
+## Interview questions
+
+1. What's the difference between a Server Component and a Client Component?
+2. What does a `layout.tsx` do, and how is it different from `page.tsx`?
+3. Why must `NEXT_PUBLIC_` variables never contain secrets?
+4. How is shadcn/ui different from a component library like MUI?
+5. Why would you choose Next.js over a plain React + Vite app for this project?
+
+## Things to revisit
+
+- Server vs Client Components (before Phase 8)
+- CSS custom properties (variables) and how Tailwind v4 themes use them

@@ -126,6 +126,10 @@ frontend/
 Pages call functions in `services/` rather than calling `fetch` inline, so every API
 call lives in one place and is typed.
 
+✅ **Implemented (Phase 1b):** Next.js 16 (App Router, Turbopack), React 19,
+Tailwind CSS v4, shadcn/ui (Base UI primitives), `lib/config.ts` for public config.
+Folders such as `services/`, `hooks/` and `types/` are created when first needed.
+
 ## 5. Cross-cutting design (planned)
 
 **Consistent API responses**
