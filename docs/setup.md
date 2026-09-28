@@ -11,8 +11,8 @@ that needs installing or configuring.
 | npm     | 11.x             | `npm -v`          |
 | Git     | 2.x              | `git --version`   |
 
-Needed in later phases (not yet):
-- **MongoDB Atlas** free-tier cluster (Phase 2)
+Accounts / services:
+- **MongoDB Atlas** free-tier cluster — **needed now** (see `database.md`)
 - **Redis** — local via Docker or a hosted free tier (Phase 11)
 - **Razorpay** test-mode account (Phase 13)
 - **Resend** account (Phase 15)
@@ -23,13 +23,14 @@ Needed in later phases (not yet):
 cd backend
 npm install
 cp .env.example .env      # Windows PowerShell: Copy-Item .env.example .env
+                          # then set MONGODB_URI (see docs/database.md)
 npm run dev
 ```
 
-Then open http://localhost:5000 — you should see:
+Then open http://localhost:5000/api/health — you should see:
 
 ```json
-{ "success": true, "data": { "message": "Movie booking API is running" } }
+{ "success": true, "data": { "status": "ok", "database": "connected", ... } }
 ```
 
 ### Backend scripts
@@ -50,6 +51,8 @@ Then open http://localhost:5000 — you should see:
 |------------|----------|---------------|-----------------------------------------|
 | `NODE_ENV` | no       | `development` | `development` \| `test` \| `production` |
 | `PORT`     | no       | `5000`        | Port the API listens on                 |
+| `MONGODB_URI` | **yes** | —          | MongoDB connection string. See `database.md` for Atlas setup |
+| `CORS_ORIGIN` | no      | `http://localhost:3000` | Frontend origin allowed to call the API from a browser |
 
 Variables are validated at startup in `backend/src/config/env.ts`. If one is invalid,
 the server refuses to start and prints which variable is wrong.

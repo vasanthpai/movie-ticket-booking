@@ -237,3 +237,74 @@ Full explanation will be written in `seat-locking.md` when implemented.
 
 ## Date
 2026-09-28
+
+---
+
+# ADR-008: Central error handling and a single response envelope
+
+## Decision
+- Every response uses `{ success: true, data }` or
+  `{ success: false, error: { code, message, details? } }`.
+- Expected failures are thrown as `ApiError(status, code, message)`. One
+  error-handling middleware turns every error into a response.
+- Unknown errors become a 500. In production the message is generic, and the full
+  error is only logged on the server.
+
+## Alternatives
+- Each controller builds its own error response with `try/catch`.
+- Return raw data with no envelope (`[...movies]`), and signal errors only through
+  status codes.
+- A standard error format such as RFC 9457 "Problem Details"
+  (`application/problem+json`).
+
+## Why
+- One place decides what clients see, so internal details (stack traces, database
+  errors) can't leak by accident.
+- Controllers stay short: throw and forget, with no repeated `try/catch`.
+- A stable `code` lets the frontend react to specific failures (e.g.
+  `SEAT_ALREADY_LOCKED` → refresh the seat map), which is much more reliable than
+  matching message text.
+- The envelope makes every response look the same to the frontend API client.
+
+## Trade-offs
+- ➕ Consistency, safety, less code in controllers.
+- ➖ The envelope is our own convention, not a standard; RFC 9457 would be more
+  interoperable. For an API with one frontend, simplicity wins.
+- ➖ `success` duplicates information that's already in the HTTP status. We keep them
+  consistent (`success: false` ⇔ non-2xx), even for `/api/health`.
+
+## Date
+2026-09-28
+
+---
+
+# ADR-009: helmet, cors and morgan as baseline middleware
+
+## Decision
+- **helmet** sets security-related HTTP headers.
+- **cors** allows exactly one origin (`CORS_ORIGIN`, the frontend), with credentials.
+- **morgan** logs requests (`dev` format locally, Apache `combined` format in
+  production).
+
+## Alternatives
+- Setting headers by hand.
+- `cors()` with no options, which allows every origin.
+- A structured JSON logger (pino + pino-http).
+
+## Why
+- helmet's defaults cover a long list of headers people forget to set by hand.
+- CORS is a browser security rule. Allowing `*` would let any website call our API
+  from its visitors' browsers; one explicit origin is the safe default, and
+  `credentials: true` will be needed once auth uses cookies (Phase 4).
+- morgan is the simplest request logger to understand.
+
+## Trade-offs
+- ➖ morgan writes plain-text logs. In production, JSON logs (pino) are easier to
+  search and filter; we may switch during deployment (Phase 19).
+- ➖ Only one CORS origin is supported for now. Preview deployments with several
+  frontend URLs would need a list.
+- Note: CORS doesn't protect the API from non-browser clients (curl, scripts).
+  Authentication does that.
+
+## Date
+2026-09-28

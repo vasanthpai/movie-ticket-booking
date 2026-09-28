@@ -72,6 +72,52 @@ backend/src/
 ✅ **Implemented (Phase 1a):** `config/env.ts` (Zod-validated env), `app.ts`
 (`createApp()`), `server.ts`. Tooling: TypeScript strict + ESM, ESLint, Prettier.
 
+✅ **Implemented (Phase 2):** `config/database.ts`, `routes.ts` (mounts module
+routers under `/api`), `middleware/` (not-found, error-handler),
+`utils/` (`ApiError`, `sendSuccess`/`sendError`), `modules/health/`.
+
+### Middleware order (as implemented in `app.ts`)
+
+```
+helmet        security headers
+  ↓
+cors          allow the frontend origin (CORS_ORIGIN)
+  ↓
+morgan        request log — BEFORE the body parser so failed requests are logged too
+  ↓
+express.json  parse body (100 KB limit)
+  ↓
+/api router   module routes
+  ↓
+notFound      nothing matched → ApiError 404
+  ↓
+errorHandler  every error → { success: false, error } JSON
+```
+
+### Error handling
+
+```
+Route handler throws ApiError.notFound('Movie not found', 'MOVIE_NOT_FOUND')
+        ↓   (Express 5 forwards thrown errors and rejected promises automatically)
+errorHandler
+        ├── ApiError         → its own status + code + message (safe for clients)
+        ├── body parse error → 400 INVALID_JSON / 413 PAYLOAD_TOO_LARGE
+        └── anything else    → logged in full, client gets 500 with a generic
+                               message in production (no stack traces leaked)
+```
+
+Services throw `ApiError`s; controllers don't need `try/catch`.
+
+### Startup and shutdown (`server.ts`)
+
+```
+validate env → connect MongoDB → listen
+                   └─ fails → log reason, exit(1)
+
+SIGINT / SIGTERM → stop accepting connections → finish in-flight requests
+                 → disconnect MongoDB → exit(0)   (forced exit after 10s)
+```
+
 ### Request flow inside the backend
 
 ```
@@ -132,7 +178,7 @@ Folders such as `services/`, `hooks/` and `types/` are created when first needed
 
 ## 5. Cross-cutting design (planned)
 
-**Consistent API responses**
+**Consistent API responses** ✅ (implemented in Phase 2, documented in `api.md`)
 ```json
 { "success": true,  "data": { ... } }
 { "success": false, "error": { "code": "SEAT_ALREADY_LOCKED", "message": "..." } }

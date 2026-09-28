@@ -189,3 +189,78 @@ were found by reading the files and testing with `git add -n`.
 
 - Server vs Client Components (before Phase 8)
 - CSS custom properties (variables) and how Tailwind v4 themes use them
+
+---
+
+# Feature: Backend foundation (Phase 2)
+
+## What I learned
+
+- What middleware is, and why the order matters
+- Centralised error handling in Express 5
+- Connecting to MongoDB once, with a connection pool
+- Health checks and what 503 means
+- CORS, and security headers with helmet
+- Graceful shutdown
+
+## Important concepts
+
+**Middleware** is a function `(req, res, next)` that runs on the way to a route. It
+can modify `req`/`res`, end the request by sending a response, or call `next()` to
+pass the request along. Express runs middleware **in the order it's registered**.
+We hit a real bug from this: with the logger after the JSON parser, requests with
+broken JSON never got logged, because the parser rejected them first.
+
+**Error-handling middleware** has **four** parameters `(err, req, res, next)`. That's
+how Express tells it apart from normal middleware, which is why `_next` stays even
+though it's unused. In Express 5, if a handler throws or returns a rejected promise,
+Express sends the error there automatically. (Express 4 needed `try/catch` or a
+wrapper around every async handler.)
+
+**Expected vs unexpected errors.**
+- Expected: "movie not found", "seat taken". We throw `ApiError` with a status and a
+  code, and the client can safely see the message.
+- Unexpected: a bug, or the database throwing. Log the full details on the server,
+  send the client only "Something went wrong". Stack traces help attackers.
+
+**Connection pooling.** Opening a database connection is slow (TCP + TLS +
+authentication). Mongoose opens a small pool once and reuses those connections for
+every query. Connecting inside each request handler is a classic mistake.
+
+**Health check + 503.** `503 Service Unavailable` means "I'm running, but I can't
+serve requests right now". Hosting platforms poll `/api/health`, and a 503 tells
+them to stop routing traffic to this instance (or restart it).
+
+**CORS** is enforced by the **browser**. When `localhost:3000` calls
+`localhost:5000`, the browser checks the response's `Access-Control-Allow-Origin`
+header, and if it doesn't match the page's origin, JavaScript isn't allowed to read
+the response. The server doesn't block anything itself. That's why CORS doesn't
+protect against curl or scripts, and why authentication is still needed.
+
+**Graceful shutdown.** When a platform redeploys, it sends `SIGTERM`. Exiting
+immediately could cut a booking request in half. Instead: stop accepting new
+connections, let in-flight requests finish, close the database, then exit.
+
+## Common mistakes
+
+- Registering the error handler **before** the routes (it never sees their errors).
+- Error handler with three parameters (Express treats it as normal middleware).
+- Sending `error.stack` or raw database errors to the client.
+- Connecting to MongoDB per request instead of once at startup.
+- Starting the HTTP server before the database is connected.
+- `cors()` with no options (allows every origin).
+- Returning 200 with `success: false`, so the status code and body disagree.
+
+## Interview questions
+
+1. What is middleware in Express? Why does the order of `app.use()` calls matter?
+2. How does Express know a middleware is an error handler?
+3. What's the difference between a 4xx and a 5xx error? When would you return 503?
+4. What is CORS, who enforces it, and what does it *not* protect against?
+5. What is graceful shutdown, and why does it matter during deployments?
+
+## Things to revisit
+
+- The HTTP status codes: 400, 401, 403, 404, 409, 413, 422, 500, 503
+- The CORS preflight (`OPTIONS`) request
+- What each helmet header protects against (CSP, HSTS, nosniff)

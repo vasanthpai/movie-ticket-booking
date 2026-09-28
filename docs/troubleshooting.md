@@ -81,3 +81,27 @@ earlier pattern excluded. Check with `git add -n frontend`.
 
 **Fix:** `cp .env.example .env.local`, then **restart** `npm run dev`. Next.js reads
 env files only at startup.
+
+---
+
+## `Could not connect to MongoDB` on startup
+
+The server refuses to start without a database. Common causes:
+
+| Message contains                       | Likely cause / fix                                                      |
+|----------------------------------------|--------------------------------------------------------------------------|
+| `bad auth` / `Authentication failed`   | Wrong username or password in `MONGODB_URI`, or special characters not URL-encoded |
+| `Server selection timed out` / `ENOTFOUND` | Your IP isn't in Atlas **Network Access**, or the cluster hostname is wrong |
+| `ECONNREFUSED 127.0.0.1:27017`         | Local MongoDB isn't running                                              |
+
+Data ends up in a database called `test`? You left the database name out of the
+URI. See `database.md`.
+
+---
+
+## Requests with a bad body don't show up in the request log
+
+**Cause:** middleware order. If `morgan` is registered *after* `express.json()`, a
+request with invalid JSON is rejected by the parser before it reaches the logger.
+
+**Fix:** register `morgan` before `express.json()`. (Found and fixed in Phase 2.)
